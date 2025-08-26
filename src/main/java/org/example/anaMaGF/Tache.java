@@ -3,18 +3,20 @@ package org.example.anaMaGF;
 import java.time.LocalDate;
 
 public class Tache {
-
-    private int id;
+    private static int compteurId = 0;
+    private final int id;
     private String titre;
     private String description;
     private LocalDate dateEcheance;
     public enum Statut {A_FAIRE, EN_COURS, TERMINE}
     private Statut statut;
 
-    public Tache(int id, String titre, String description, LocalDate dateEcheance, Statut statut) {
+
+
+    public Tache(String titre, String description, LocalDate dateEcheance, Statut statut) {
         if(titre == null || titre.isBlank()) throw new IllegalArgumentException("titre obligatoire");
         if(statut == null) throw new IllegalArgumentException("statut obligatoire");
-        this.id = id;
+        this.id = ++compteurId;
         this.titre = titre;
         this.description = description;
         this.dateEcheance = dateEcheance;
@@ -25,9 +27,6 @@ public class Tache {
         return id;
     }
 
-    public void setId(int id) {
-        this.id = id;
-    }
 
     public String getTitre() {
         return titre;
@@ -60,8 +59,7 @@ public class Tache {
     public void setStatut(Statut statut) {
         this.statut = statut;
     }
-
-    //Retourne true si la tâche n'est pas terminée et que l'échéance est dépassée
+    /** Vérifie si la tâche est en retard. */
     public boolean estEnRetard(){
         return (this.statut != Statut.TERMINE)
                 && this.dateEcheance != null
@@ -87,8 +85,6 @@ public class Tache {
     }
     @Override
     public int hashCode() {
-        return id;
+        return Integer.hashCode(id);
     }
-
-
 }
