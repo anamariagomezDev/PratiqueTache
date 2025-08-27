@@ -1,17 +1,17 @@
 package org.example.anaMaGF;
 
 import java.time.LocalDate;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Objects;
+import java.util.*;
+import java.util.concurrent.atomic.AtomicInteger;
 
 public class Project {
 
     public enum StatutProjet {EN_COURS, TERMINE, EN_ATTENTE}
+    private static final AtomicInteger COMPTEUR_ID = new AtomicInteger(0);
 
-    ;
 
-    private int id;
+   // private static int compteurId = 0;
+    private final int id;
     private String nom;
     private String description;
     private LocalDate dateDebut;
@@ -20,12 +20,13 @@ public class Project {
 
     private final List<Tache> taches = new ArrayList<>();
 
-    public Project(int id, String nom, String description,
+    public Project(String nom, String description,
                    LocalDate dateDebut, LocalDate dateFin, StatutProjet statut) {
         if (dateDebut != null && dateFin != null && dateFin.isBefore(dateDebut)) {
             throw new IllegalArgumentException("dateFin ne peut pas être avant dateDebut");
         }
-        this.id = id;
+        this.id  = COMPTEUR_ID.incrementAndGet();
+        /* this.id = ++compteurId; */
         this.nom = Objects.requireNonNull(nom);
         this.description = description;
         this.dateDebut = dateDebut;
@@ -37,9 +38,6 @@ public class Project {
         return id;
     }
 
-    public void setId(int id) {
-        this.id = id;
-    }
 
     public String getNom() {
         return nom;
@@ -85,7 +83,8 @@ public class Project {
     }
 
     public List<Tache> getTaches() {
-        return taches;
+        //Retourne une copie non modifiable pour protéger l'état interne.
+        return Collections.unmodifiableList(taches);
     }
 
     public void ajouterTache(Tache t) {
@@ -105,11 +104,34 @@ public class Project {
         }
         return res;
     }
-    /*public List<Tache> listerTachesParStatut(Tache.Statut statut) {
+
+           /*public List<Tache> listerTachesParStatut(Tache.Statut statut) {
     return taches.stream()
                  .filter(t -> t.getStatut() == statut)
-                 .toList(); // en Java 16+ ; sinon .collect(Collectors.toList())
-}*/
+                 .toList(); // en Java 16+ ; sinon .collect(Collectors.toList())}*/
+
+
+    /* Pourcentage [0.0, 1.0] de tâches terminées. */
+    public double progression(){
+        if(taches.isEmpty()) return 0.0;
+        long done = taches.stream()
+                         .filter(t -> t.getStatut() == Tache.Statut.TERMINE)
+                         .count();
+        return (double) done / taches.size();
+    }
+    public void cloreSiTermine() {
+            if (!taches.isEmpty() && taches.stream().allMatch(t -> t.getStatut() == Tache.Statut.TERMINE)) {
+                this.statut = StatutProjet.TERMINE;
+        }
+    }
+
+
+    /*Un project est en retard si non terminé et que la dateFin est passée*/
+    public boolean estEnRetard(){
+        return (this.statut != StatutProjet.TERMINE)
+                && this.dateFin != null
+                && (this.dateFin.isBefore(LocalDate.now()));
+    }
 
 
     @Override
